@@ -1,0 +1,15 @@
+﻿@page "/"
+
+<PageTitle>Home</PageTitle>
+
+<h1></h1>
+
+@code {
+    private string statusMessage;
+
+    protected override async Task OnInitializedAsync(){
+
+    var apiKey = Configuration["Azure:ApiKey"];
+    var client = HttpClientFactory.CreateClient();
+    }
+}
