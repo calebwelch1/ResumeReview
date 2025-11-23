@@ -1,10 +1,27 @@
+using Azure;
+using Azure.AI.OpenAI;
+using Microsoft.Extensions.Options;
 using ResumeReview.Components;
-using Microsoft.AspNetCore.Components.Web;
-using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
-using Azure.Core;
-using Azure.AI.Language.Conversations;
+using ResumeReview.Models;
+using ResumeReview.Services;
 
 var builder = WebApplication.CreateBuilder(args);
+
+builder.Services.Configure<AzureOpenAIOptions>(builder.Configuration.GetSection("AzureOpenAI"));
+builder.Services.AddSingleton(sp =>
+{
+    var options = sp.GetRequiredService<IOptions<AzureOpenAIOptions>>().Value;
+
+    if (string.IsNullOrWhiteSpace(options.Endpoint) || string.IsNullOrWhiteSpace(options.ApiKey) || string.IsNullOrWhiteSpace(options.Deployment))
+    {
+        throw new InvalidOperationException("AzureOpenAI configuration is missing. Please set AzureOpenAI:Endpoint, AzureOpenAI:ApiKey, and AzureOpenAI:Deployment in configuration.");
+    }
+
+    return new OpenAIClient(new Uri(options.Endpoint), new AzureKeyCredential(options.ApiKey));
+});
+
+builder.Services.AddScoped<ChatService>();
+builder.Services.AddHttpClient();
 
 // Add services to the container.
 builder.Services.AddRazorComponents()
@@ -16,22 +33,18 @@ var app = builder.Build();
 if (!app.Environment.IsDevelopment())
 {
     app.UseExceptionHandler("/Error", createScopeForErrors: true);
-    // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
     app.UseHsts();
 }
 
-var apiKey = "none";
-builder.Services.AddHttpClient("CoinGeckoClient", client =>
-{
-    client.BaseAddress = new Uri("https://api.coingecko.com/api/v3/");
-    client.DefaultRequestHeaders.Add("x-cg-pro-api-key", apiKey);
-});
-
-builder.Services.AddHttpClient();
 app.UseHttpsRedirection();
-
 app.UseStaticFiles();
 app.UseAntiforgery();
+
+app.MapPost("/api/chat", async (ChatRequest request, ChatService chatService, CancellationToken cancellationToken) =>
+{
+    var response = await chatService.GetResponseAsync(request.Messages, cancellationToken);
+    return Results.Ok(response);
+});
 
 app.MapRazorComponents<App>()
     .AddInteractiveServerRenderMode();

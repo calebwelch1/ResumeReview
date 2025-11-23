@@ -49,3 +49,46 @@ h1:focus {
 .darker-border-checkbox.form-check-input {
     border-color: #929292;
 }
+
+.chat-container {
+    background-color: #f7f8fa;
+    border: 1px solid #e0e4eb;
+    border-radius: 12px;
+    padding: 1.5rem;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+}
+
+.chat-log {
+    max-height: 420px;
+    overflow-y: auto;
+    margin-bottom: 1rem;
+    padding-right: 0.25rem;
+}
+
+.chat-bubble {
+    padding: 0.75rem 1rem;
+    border-radius: 12px;
+    margin-bottom: 0.75rem;
+    white-space: pre-wrap;
+    line-height: 1.5;
+}
+
+.chat-bubble .chat-role {
+    font-size: 0.9rem;
+    font-weight: 600;
+    margin-bottom: 0.25rem;
+}
+
+.chat-bubble.user {
+    background-color: #e6f2ff;
+    border: 1px solid #d1e5ff;
+    margin-left: auto;
+    max-width: 80%;
+}
+
+.chat-bubble.assistant {
+    background-color: #ffffff;
+    border: 1px solid #e5e5e5;
+    margin-right: auto;
+    max-width: 85%;
+}

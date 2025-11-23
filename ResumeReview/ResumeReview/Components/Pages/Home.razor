@@ -1,86 +1,82 @@
-﻿@page "/"
+@page "/"
+@inject HttpClient Http
 
-<PageTitle>Home</PageTitle>
+<PageTitle>Azure AI Chat</PageTitle>
 
-<h1></h1>
+<h1>Azure AI Chat</h1>
+<p class="lead">Chat with your Azure OpenAI deployment for resume and career questions.</p>
+
+<div class="chat-container">
+    <div class="chat-log">
+        @foreach (var message in _conversation)
+        {
+            <div class=@$"chat-bubble {(message.Role == "user" ? "user" : "assistant")}">
+                <div class="chat-role">@((message.Role == "user") ? "You" : "Azure AI")</div>
+                <div>@message.Content</div>
+            </div>
+        }
+        @if (!string.IsNullOrWhiteSpace(_error))
+        {
+            <div class="alert alert-warning" role="alert">@_error</div>
+        }
+    </div>
+
+    <EditForm OnValidSubmit="SendMessage">
+        <InputTextArea class="form-control" @bind-Value="_currentMessage" placeholder="Ask for resume feedback or career advice..." rows="4" />
+        <div class="d-flex justify-content-between align-items-center mt-2">
+            <button class="btn btn-primary" type="submit" disabled="@_isSending">@(_isSending ? "Sending..." : "Send")</button>
+            <small class="text-muted">Messages are sent to your configured Azure OpenAI deployment.</small>
+        </div>
+    </EditForm>
+</div>
 
 @code {
-    private string statusMessage;
-
-    protected override async Task OnInitializedAsync(){
-    var apiKey = Configuration["Azure:ApiKey"];
-    var client = HttpClientFactory.CreateClient();
-
-    Uri endpoint = new Uri("https://myaccount.cognitiveservices.azure.com");
-    AzureKeyCredential credential = new AzureKeyCredential("{api-key}");
-
-    ConversationAnalysisClient client = new ConversationAnalysisClient(endpoint, credential);
-    
-    string projectName = "ResumeReviewBotPortfolio";
-    string deploymentName = "ResumeReviewBotDeployment";
-
-var data = new
-{
-    analysisInput = new
+    private readonly List<ChatMessageDto> _conversation = new()
     {
-        conversationItem = new
+        new ChatMessageDto("assistant", "Hi! I can help review resumes and answer career questions. What would you like to know?")
+    };
+
+    private string? _currentMessage;
+    private bool _isSending;
+    private string? _error;
+
+    private async Task SendMessage()
+    {
+        _error = null;
+
+        if (string.IsNullOrWhiteSpace(_currentMessage))
         {
-            text = "How do I become a software engineer",
-            id = "1",
-            participantId = "1",
+            return;
         }
-    },
-    parameters = new
-    {
-        projectName,
-        deploymentName,
 
-        // Use Utf16CodeUnit for strings in .NET.
-        stringIndexType = "Utf16CodeUnit",
-    },
-    kind = "Conversation",
-};
+        var trimmed = _currentMessage.Trim();
+        _conversation.Add(new ChatMessageDto("user", trimmed));
+        _currentMessage = string.Empty;
+        _isSending = true;
 
-Response response = client.AnalyzeConversation(RequestContent.Create(data));
-
-using JsonDocument result = JsonDocument.Parse(response.ContentStream);
-JsonElement conversationalTaskResult = result.RootElement;
-JsonElement conversationPrediction = conversationalTaskResult.GetProperty("result").GetProperty("prediction");
-
-Console.WriteLine($"Top intent: {conversationPrediction.GetProperty("topIntent").GetString()}");
-
-Console.WriteLine("Intents:");
-foreach (JsonElement intent in conversationPrediction.GetProperty("intents").EnumerateArray())
-{
-    Console.WriteLine($"Category: {intent.GetProperty("category").GetString()}");
-    Console.WriteLine($"Confidence: {intent.GetProperty("confidenceScore").GetSingle()}");
-    Console.WriteLine();
-}
-
-Console.WriteLine("Entities:");
-foreach (JsonElement entity in conversationPrediction.GetProperty("entities").EnumerateArray())
-{
-    Console.WriteLine($"Category: {entity.GetProperty("category").GetString()}");
-    Console.WriteLine($"Text: {entity.GetProperty("text").GetString()}");
-    Console.WriteLine($"Offset: {entity.GetProperty("offset").GetInt32()}");
-    Console.WriteLine($"Length: {entity.GetProperty("length").GetInt32()}");
-    Console.WriteLine($"Confidence: {entity.GetProperty("confidenceScore").GetSingle()}");
-    Console.WriteLine();
-
-    if (entity.TryGetProperty("resolutions", out JsonElement resolutions))
-    {
-        foreach (JsonElement resolution in resolutions.EnumerateArray())
+        try
         {
-            if (resolution.GetProperty("resolutionKind").GetString() == "DateTimeResolution")
+            var response = await Http.PostAsJsonAsync("/api/chat", new ChatRequest { Messages = _conversation });
+            response.EnsureSuccessStatusCode();
+
+            var chatResponse = await response.Content.ReadFromJsonAsync<ChatResponse>();
+            if (chatResponse is not null && !string.IsNullOrWhiteSpace(chatResponse.Reply))
             {
-                Console.WriteLine($"Datetime Sub Kind: {resolution.GetProperty("dateTimeSubKind").GetString()}");
-                Console.WriteLine($"Timex: {resolution.GetProperty("timex").GetString()}");
-                Console.WriteLine($"Value: {resolution.GetProperty("value").GetString()}");
-                Console.WriteLine();
+                _conversation.Add(new ChatMessageDto("assistant", chatResponse.Reply));
+            }
+            else
+            {
+                _error = "Azure AI returned an empty response.";
             }
         }
-    }
-}
-    
+        catch (Exception ex)
+        {
+            _error = $"Could not reach Azure AI: {ex.Message}";
+        }
+        finally
+        {
+            _isSending = false;
+            StateHasChanged();
+        }
     }
 }
