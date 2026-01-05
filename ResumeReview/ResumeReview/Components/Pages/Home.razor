@@ -21,8 +21,8 @@
         }
     </div>
 
-    <EditForm OnValidSubmit="SendMessage">
-        <InputTextArea class="form-control" @bind-Value="_currentMessage" placeholder="Ask for resume feedback or career advice." rows="4" />
+    <EditForm Model="_messageInput" OnValidSubmit="SendMessage">
+        <InputTextArea class="form-control" @bind-Value="_messageInput.Message" placeholder="Ask for resume feedback or career advice." rows="4" />
         <div class="d-flex justify-content-between align-items-center mt-2">
             <button class="btn btn-primary" type="submit" disabled="@_isSending">@(_isSending ? "Sending..." : "Send")</button>
             <small class="text-muted">Messages are sent to your configured Azure OpenAI deployment.</small>
@@ -36,7 +36,7 @@
         new ChatMessageDto("assistant", "Hi! I can help review resumes and answer career questions. What would you like to know?")
     };
 
-    private string? _currentMessage;
+    private readonly MessageInput _messageInput = new();
     private bool _isSending;
     private string? _error;
 
@@ -44,14 +44,14 @@
     {
         _error = null;
 
-        if (string.IsNullOrWhiteSpace(_currentMessage))
+        if (string.IsNullOrWhiteSpace(_messageInput.Message))
         {
             return;
         }
 
-        var trimmed = _currentMessage.Trim();
+        var trimmed = _messageInput.Message.Trim();
         _conversation.Add(new ChatMessageDto("user", trimmed));
-        _currentMessage = string.Empty;
+        _messageInput.Message = string.Empty;
         _isSending = true;
 
         try
@@ -78,5 +78,10 @@
             _isSending = false;
             StateHasChanged();
         }
+    }
+
+    private class MessageInput
+    {
+        public string? Message { get; set; }
     }
 }
