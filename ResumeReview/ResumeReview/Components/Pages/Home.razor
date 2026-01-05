@@ -4,31 +4,50 @@
 
 <PageTitle>Azure AI Chat</PageTitle>
 
-<h1>Azure AI Chat</h1>
-<p class="lead">Chat with your Azure OpenAI deployment for resume and career questions.</p>
+<div class="chat-header">
+    <div>
+        <h1>AI Resume Strategist</h1>
+        <p class="lead">Refine resumes, prepare interviews, and get actionable career guidance powered by Azure OpenAI.</p>
+    </div>
+    <div class="stat-pill" aria-hidden="true">
+        <span>🔒</span>
+        <span>Private by design</span>
+    </div>
+</div>
 
-<div class="chat-container">
-    <div class="chat-log">
-        @foreach (var message in _conversation)
-        {
-            <div class="@($"chat-bubble {(message.Role == "user" ? "user" : "assistant")}")">
-                <div class="chat-role">@((message.Role == "user") ? "You" : "Azure AI")</div>
-                <div>@message.Content</div>
+<div class="chat-layout">
+    <div class="chat-container">
+        <div class="chat-log">
+            @foreach (var message in _conversation)
+            {
+                <div class="@($"chat-bubble {(message.Role == "user" ? "user" : "assistant")}")">
+                    <div class="chat-role">@((message.Role == "user") ? "You" : "Azure AI")</div>
+                    <div>@message.Content</div>
+                </div>
+            }
+            @if (!string.IsNullOrWhiteSpace(_error))
+            {
+                <div class="alert alert-warning" role="alert">@_error</div>
+            }
+        </div>
+
+        <EditForm Model="_messageInput" OnValidSubmit="SendMessage" FormName="ChatForm">
+            <InputTextArea class="form-control" @bind-Value="_messageInput.Message" placeholder="Ask for resume feedback, bullet improvements, or interview prep tips." rows="4" />
+            <div class="d-flex justify-content-between align-items-center mt-2 flex-wrap gap-2">
+                <button class="btn btn-primary" type="submit" disabled="@_isSending">@(_isSending ? "Sending..." : "Send")</button>
+                <small class="text-muted">Your prompt is sent to your configured Azure OpenAI deployment.</small>
             </div>
-        }
-        @if (!string.IsNullOrWhiteSpace(_error))
-        {
-            <div class="alert alert-warning" role="alert">@_error</div>
-        }
+        </EditForm>
     </div>
 
-    <EditForm Model="_messageInput" OnValidSubmit="SendMessage" FormName="ChatForm">
-        <InputTextArea class="form-control" @bind-Value="_messageInput.Message" placeholder="Ask for resume feedback or career advice." rows="4" />
-        <div class="d-flex justify-content-between align-items-center mt-2">
-            <button class="btn btn-primary" type="submit" disabled="@_isSending">@(_isSending ? "Sending..." : "Send")</button>
-            <small class="text-muted">Messages are sent to your configured Azure OpenAI deployment.</small>
-        </div>
-    </EditForm>
+    <aside class="chat-container">
+        <h5 class="mb-3">Pro tips</h5>
+        <ul class="mb-0" style="color: #c7d2e8; line-height: 1.6; padding-left: 1.1rem;">
+            <li>Share the target role and industry so responses reflect the right tone.</li>
+            <li>Ask for quantified bullet suggestions to strengthen achievements.</li>
+            <li>Request interview flash cards or questions aligned to the job description.</li>
+        </ul>
+    </aside>
 </div>
 
 @code {
