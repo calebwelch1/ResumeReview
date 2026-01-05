@@ -21,7 +21,7 @@
         }
     </div>
 
-    <EditForm Model="_messageInput" OnValidSubmit="SendMessage">
+    <EditForm Model="_messageInput" OnValidSubmit="SendMessage" FormName="ChatForm">
         <InputTextArea class="form-control" @bind-Value="_messageInput.Message" placeholder="Ask for resume feedback or career advice." rows="4" />
         <div class="d-flex justify-content-between align-items-center mt-2">
             <button class="btn btn-primary" type="submit" disabled="@_isSending">@(_isSending ? "Sending..." : "Send")</button>
