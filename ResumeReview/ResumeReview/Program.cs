@@ -17,7 +17,7 @@ builder.Services.AddSingleton(sp =>
         throw new InvalidOperationException("AzureOpenAI configuration is missing. Please set AzureOpenAI:Endpoint, AzureOpenAI:ApiKey, and AzureOpenAI:Deployment in configuration.");
     }
 
-    return new OpenAIClient(new Uri(options.Endpoint), new AzureKeyCredential(options.ApiKey));
+    return new AzureOpenAIClient(new Uri(options.Endpoint), new AzureKeyCredential(options.ApiKey));
 });
 
 builder.Services.AddScoped<ChatService>();

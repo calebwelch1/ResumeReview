@@ -1,15 +1,16 @@
 using Azure.AI.OpenAI;
 using Microsoft.Extensions.Options;
+using OpenAI.Chat;
 using ResumeReview.Models;
 
 namespace ResumeReview.Services;
 
 public class ChatService
 {
-    private readonly OpenAIClient _client;
+    private readonly AzureOpenAIClient _client;
     private readonly AzureOpenAIOptions _options;
 
-    public ChatService(OpenAIClient client, IOptions<AzureOpenAIOptions> options)
+    public ChatService(AzureOpenAIClient client, IOptions<AzureOpenAIOptions> options)
     {
         _client = client;
         _options = options.Value;
@@ -17,19 +18,15 @@ public class ChatService
 
     public async Task<ChatResponse> GetResponseAsync(IEnumerable<ChatMessageDto> messages, CancellationToken cancellationToken = default)
     {
+        var chatClient = _client.GetChatClient(_options.Deployment);
         var chatMessages = BuildChatMessages(messages);
-        var chatOptions = new ChatCompletionsOptions(_options.Deployment)
+        var chatOptions = new ChatCompletionOptions
         {
             Temperature = 0.4f
         };
 
-        foreach (var message in chatMessages)
-        {
-            chatOptions.Messages.Add(message);
-        }
-
-        var result = await _client.GetChatCompletionsAsync(chatOptions, cancellationToken);
-        var completion = result.Value.Choices.FirstOrDefault()?.Message.Content ?? "I wasn't able to generate a response.";
+        var completionResult = await chatClient.CompleteChatAsync(chatMessages, chatOptions, cancellationToken);
+        var completion = completionResult.Value.Content.FirstOrDefault()?.Text ?? "I wasn't able to generate a response.";
 
         return new ChatResponse(completion);
     }
@@ -38,21 +35,21 @@ public class ChatService
     {
         var chatMessages = new List<ChatMessage>
         {
-            new(ChatRole.System, "You are an AI assistant that helps with resume reviews and career guidance. Keep responses concise and actionable.")
+            new SystemChatMessage("You are an AI assistant that helps with resume reviews and career guidance. Keep responses concise and actionable.")
         };
 
         foreach (var message in messages)
         {
-            chatMessages.Add(new ChatMessage(RoleFromText(message.Role), message.Content));
+            chatMessages.Add(RoleFromText(message.Role, message.Content));
         }
 
         return chatMessages;
     }
 
-    private static ChatRole RoleFromText(string role) => role.ToLowerInvariant() switch
+    private static ChatMessage RoleFromText(string role, string content) => role.ToLowerInvariant() switch
     {
-        "assistant" => ChatRole.Assistant,
-        "system" => ChatRole.System,
-        _ => ChatRole.User
+        "assistant" => new AssistantChatMessage(content),
+        "system" => new SystemChatMessage(content),
+        _ => new UserChatMessage(content)
     };
 }

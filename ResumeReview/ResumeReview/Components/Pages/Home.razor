@@ -10,7 +10,7 @@
     <div class="chat-log">
         @foreach (var message in _conversation)
         {
-            <div class=@$"chat-bubble {(message.Role == "user" ? "user" : "assistant")}">
+            <div class="@($"chat-bubble {(message.Role == "user" ? "user" : "assistant")}")">
                 <div class="chat-role">@((message.Role == "user") ? "You" : "Azure AI")</div>
                 <div>@message.Content</div>
             </div>
@@ -22,7 +22,7 @@
     </div>
 
     <EditForm OnValidSubmit="SendMessage">
-        <InputTextArea class="form-control" @bind-Value="_currentMessage" placeholder="Ask for resume feedback or career advice..." rows="4" />
+        <InputTextArea class="form-control" @bind-Value="_currentMessage" placeholder="Ask for resume feedback or career advice." rows="4" />
         <div class="d-flex justify-content-between align-items-center mt-2">
             <button class="btn btn-primary" type="submit" disabled="@_isSending">@(_isSending ? "Sending..." : "Send")</button>
             <small class="text-muted">Messages are sent to your configured Azure OpenAI deployment.</small>
