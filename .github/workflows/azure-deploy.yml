@@ -9,6 +9,7 @@ on:
 env:
   AZURE_WEBAPP_NAME: rg-resume-strategist
   DOTNET_VERSION: '8.0.x'
+  WORKING_DIRECTORY: './ResumeReview'
 
 jobs:
   build-and-deploy:
@@ -25,12 +26,15 @@ jobs:
 
     - name: Restore dependencies
       run: dotnet restore
+      working-directory: ${{ env.WORKING_DIRECTORY }}
 
     - name: Build application
       run: dotnet build --configuration Release --no-restore
+      working-directory: ${{ env.WORKING_DIRECTORY }}
 
     - name: Publish application
-      run: dotnet publish -c Release -o ./publish
+      run: dotnet publish -c Release -o ../publish
+      working-directory: ${{ env.WORKING_DIRECTORY }}
 
     - name: Login to Azure
       uses: azure/login@v1
