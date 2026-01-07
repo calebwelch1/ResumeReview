@@ -22,7 +22,8 @@ public class ChatService
         var chatMessages = BuildChatMessages(messages);
         var chatOptions = new ChatCompletionOptions
         {
-            Temperature = 0.4f
+            Temperature = 0.7f,
+            MaxOutputTokenCount = 800
         };
 
         var completionResult = await chatClient.CompleteChatAsync(chatMessages, chatOptions, cancellationToken);
