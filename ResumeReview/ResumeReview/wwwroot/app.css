@@ -271,7 +271,7 @@ h1:focus {
     border-color: rgba(107, 91, 255, 0.45);
     margin-left: auto;
     max-width: 78%;
-    color: #0c152c;
+    color: #f7f8ff;
 }
 
 .chat-bubble.assistant {
