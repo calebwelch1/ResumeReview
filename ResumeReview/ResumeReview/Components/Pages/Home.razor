@@ -1,4 +1,6 @@
 @page "/"
+@using ResumeReview.Models
+@inject NavigationManager Navigation
 @inject HttpClient Http
 @rendermode InteractiveServer
 
@@ -93,7 +95,8 @@
 
         try
         {
-            var response = await Http.PostAsJsonAsync("/api/chat", new ChatRequest { Messages = _conversation });
+            var apiUrl = Navigation.ToAbsoluteUri("/api/chat").ToString();
+            var response = await Http.PostAsJsonAsync(apiUrl, new ChatRequest { Messages = _conversation });
             response.EnsureSuccessStatusCode();
 
             var chatResponse = await response.Content.ReadFromJsonAsync<ChatResponse>();

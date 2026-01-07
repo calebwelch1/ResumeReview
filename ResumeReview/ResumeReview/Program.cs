@@ -4,6 +4,7 @@ using Microsoft.Extensions.Options;
 using ResumeReview.Components;
 using ResumeReview.Models;
 using ResumeReview.Services;
+using System.ClientModel;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -17,7 +18,8 @@ builder.Services.AddSingleton(sp =>
         throw new InvalidOperationException("AzureOpenAI configuration is missing. Please set AzureOpenAI:Endpoint, AzureOpenAI:ApiKey, and AzureOpenAI:Deployment in configuration.");
     }
 
-    return new AzureOpenAIClient(new Uri(options.Endpoint), new AzureKeyCredential(options.ApiKey));
+    // Use ApiKeyCredential instead of AzureKeyCredential
+    return new AzureOpenAIClient(new Uri(options.Endpoint), new ApiKeyCredential(options.ApiKey));
 });
 
 builder.Services.AddScoped<ChatService>();
@@ -40,10 +42,24 @@ app.UseHttpsRedirection();
 app.UseStaticFiles();
 app.UseAntiforgery();
 
-app.MapPost("/api/chat", async (ChatRequest request, ChatService chatService, CancellationToken cancellationToken) =>
+app.MapPost("/api/chat", async (ChatRequest request, ChatService chatService, ILogger<Program> logger, CancellationToken cancellationToken) =>
 {
-    var response = await chatService.GetResponseAsync(request.Messages, cancellationToken);
-    return Results.Ok(response);
+    try
+    {
+        logger.LogInformation("Received chat request with {MessageCount} messages", request.Messages.Count);
+        var response = await chatService.GetResponseAsync(request.Messages, cancellationToken);
+        logger.LogInformation("Successfully generated response");
+        return Results.Ok(response);
+    }
+    catch (Exception ex)
+    {
+        logger.LogError(ex, "Error processing chat request");
+        return Results.Problem(
+            detail: ex.Message,
+            statusCode: 500,
+            title: "Chat Service Error"
+        );
+    }
 });
 
 app.MapRazorComponents<App>()
