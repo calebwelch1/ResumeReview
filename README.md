@@ -2,6 +2,12 @@
 
 A production-ready AI-powered career coaching application built with Azure OpenAI and Blazor Server, designed to provide personalized resume feedback, interview preparation, and career guidance through intelligent conversational AI.
 
+## 🌐 Live Demo
+
+**🚀 Deployed Application:** [https://resume-strategist-app.azurewebsites.net](https://rg-resume-strategist-hmepdehzgud9bdb5.canadaeast-01.azurewebsites.net/)
+
+Hosted on **Azure App Service** with continuous deployment via GitHub Actions.
+
 ## 🎯 Project Overview
 
 This application demonstrates enterprise-level Azure AI implementation, showcasing skills in cloud AI architecture, secure API integration, and modern web development practices. Built as part of my Azure AI Engineer certification journey, this project implements best practices for deploying and managing Azure Cognitive Services in a real-world application.
@@ -23,6 +29,7 @@ This application demonstrates enterprise-level Azure AI implementation, showcasi
 **Infrastructure**
 - **Azure Cloud Platform** - Enterprise-grade hosting and compute
 - **Azure Key Vault** (production) - Secure credential management
+- **GitHub Actions** - CI/CD pipeline for automated deployments
 - **Application Insights** (production) - Monitoring and diagnostics
 
 ### System Architecture
