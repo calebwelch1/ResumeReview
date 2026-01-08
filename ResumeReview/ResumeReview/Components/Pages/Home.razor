@@ -54,7 +54,7 @@
             <InputTextArea class="form-control" @bind-Value="_messageInput.Message" placeholder="Ask for resume feedback, bullet improvements, or interview prep tips." rows="4" />
             <div class="d-flex justify-content-between align-items-center mt-2 flex-wrap gap-2">
                 <button class="btn btn-primary" type="submit" disabled="@_isSending">@(_isSending ? "Sending..." : "Send")</button>
-                <small class="text-muted">Your prompt is sent to your configured Azure OpenAI deployment.</small>
+                <small class="text-muted">Your prompt is sent to a custom Azure OpenAI deployment.</small>
             </div>
         </EditForm>
     </div>
@@ -65,6 +65,12 @@
             <li>Share the target role and industry so responses reflect the right tone.</li>
             <li>Ask for quantified bullet suggestions to strengthen achievements.</li>
             <li>Request interview flash cards or questions aligned to the job description.</li>
+        </ul>
+        <h5 class="mb-3">About</h5>
+        <ul class="mb-0 brand-links">
+            <li>App built by Caleb Welch</li>
+            <li><a class="nav-link" href="https://github.com/calebwelch1" target="_blank" rel="noreferrer noopener">GitHub</a></li>
+            <li><a class="nav-link" href="https://www.linkedin.com/in/caleb-welch-502851121/" target="_blank" rel="noreferrer noopener">LinkedIn</a></li>
         </ul>
     </aside>
 </div>
